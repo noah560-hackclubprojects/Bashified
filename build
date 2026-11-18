@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Build the project from each component:
+# - parser
+# - compiler
+# - interpreter
+# - packager
+# - final CLI
+
+build_path=$(git rev-parse --show-toplevel)/bashified
+source_path=$(git rev-parse --show-toplevel)/src
+
+echo "Building final script from components..."
+# Make sure the script is the actual command
+echo 'if [[ "$0" == "bash" ]]; then echo "You need to run this script directly." ; exit ; fi' > "$build_path"
+# Create a reference to the script within the script
+# so that each component can access the others.
+echo 'built_path=$(realpath $0)' >> "$build_path"
+
+echo "Adding parser component..."
+# Check for using parser
+echo 'if [[ "$1" == "parser" ]]; then' >> "$build_path"
+cat "$source_path/parser.bash" >> "$build_path"
+
+echo "Adding compiler component..."
+# Check for using compiler
+echo 'elif [[ "$1" == "compiler" ]]; then' >> "$build_path"
+cat "$source_path/compiler.bash" >> "$build_path"
+
+echo "Adding interpreter component..."
+# Check for using interpreter
+echo 'elif [[ "$1" == "interpreter" ]]; then' >> "$build_path"
+cat "$source_path/interpreter.bash" >> "$build_path"
+
+echo "Adding packager component..."
+# Check for using packager
+echo 'elif [[ "$1" == "packager" ]]; then' >> "$build_path"
+cat "$source_path/packager.bash" >> "$build_path"
+
+echo "Adding cli component..."
+# Check for using cli
+echo 'else' >> "$build_path"
+cat "$source_path/cli.bash" >> "$build_path"
+echo 'fi' >> "$build_path"
+
+echo "Making the file executable..."
+chmod +xX "$build_path"
+
+echo "Finished!"
