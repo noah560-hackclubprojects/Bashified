@@ -56,6 +56,10 @@ foreign concat(2) {
 ## Comments
 You may include comments in your Bashified
 code using `//` like in Rust, C, C++, etc.
+Comments may only be on their own lines.
+These comments may only be included in
+functions. For foreign statements,
+use `#` in your bash code.
 
 ## Data Types
 Bashified only has one data type: the string.

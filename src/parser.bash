@@ -126,19 +126,23 @@ while IFS= read -r line; do
                 echo "$current_definition" >> "$parse_to"
                 current_definition=""
             else
-                if [[ "$line" == *"="* ]]; then
-                    # This is a variable assignment
-                    var_name=$(echo "$line" | cut -d "=" -f1 | xargs)
-                    assigned_value=$(echo "$line" | cut -d "=" -f2 | xargs)
-                    assigned_value=$(parse_function "$assigned_value")
-                    assigned_value=$(escape "$assigned_value")
-                    next_call="= 2 \"$var_name\" $assigned_value"
-                    next_call=$(escape "$next_call")
+                if [[ "$line" == *"//"* ]]; then
+                    true
                 else
-                    # This is a normal function call
-                    next_call=$(parse_function "")
+                    if [[ "$line" == *"="* ]]; then
+                        # This is a variable assignment
+                        var_name=$(echo "$line" | cut -d "=" -f1 | xargs)
+                        assigned_value=$(echo "$line" | cut -d "=" -f2 | xargs)
+                        assigned_value=$(parse_function "$assigned_value")
+                        assigned_value=$(escape "$assigned_value")
+                        next_call="= 2 \"$var_name\" $assigned_value"
+                        next_call=$(escape "$next_call")
+                    else
+                        # This is a normal function call
+                        next_call=$(parse_function "")
+                    fi
+                    current_definition="$current_definition $next_call"
                 fi
-                current_definition="$current_definition $next_call"
             fi
             ;;
     esac
