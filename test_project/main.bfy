@@ -1,0 +1,10 @@
+include sillyprint
+
+foreign print(1) {
+    echo $1
+}
+
+fn main() {
+    sillyprint("banana")
+    print("banana")
+}

@@ -1,0 +1,3 @@
+foreign sillyprint(1) {
+    echo "jafdslk $1 jafdslk"
+}
