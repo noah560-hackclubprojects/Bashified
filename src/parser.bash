@@ -50,9 +50,105 @@
 parse_from="$2"
 parse_to="$3"
 
+# Command to test:
+# parse_function 'print("apple", lower("BANANA"))'
+# Should output (if you remove the escaping step):
+# (print "apple" (lower "BANANA"))
 parse_function() {
-    true
+    # Get the argument into a variable
+    # with a useful name so the code later
+    # is more readable
     call_text="$1"
+    # Separate the function name from the
+    # csv-like syntax that contains the
+    # arguments (and include the last closing
+    # parentheses in the argument string)
+    function_name=$(cut -d "(" -f1 <<< "$call_text")
+    arguments_start_index=$(( ${#function_name} + 1 ))
+    argument_string="${call_text:$arguments_start_index}"
+    # argument_string=$(cut -d "(" -f2 <<< "$call_text")
+    # Get ready to parse the data
+    #argument_list=()
+    current_argument=""
+    current_line="$function_name"
+    nesting_level="0"
+    in_quotes="0"
+    # Loop through characters
+    index="0"
+    while [[ index -lt "${#argument_string}" ]]; do
+        char="${argument_string:$index:1}"
+        case "$in_quotes" in
+            1)
+                # We are in single quotes
+                if [[ "$char" == "'" ]]; then
+                    in_quotes="0"
+                fi
+                current_argument="$current_argument$char"
+                ;;
+            2)
+                # We are in double quotes
+                if [[ "$char" == '"' ]]; then
+                    in_quotes="0"
+                fi
+                current_argument="$current_argument$char"
+                ;;
+            0)
+                # The actually interesting case:
+                # we are not in a string
+                if [[ "$char" == "'" ]]; then
+                    in_quotes="1"
+                    current_argument="$current_argument$char"
+                elif [[ "$char" == '"' ]]; then
+                    in_quotes="2"
+                    current_argument="$current_argument$char"
+                elif [[ "$char" == "(" ]]; then
+                    nesting_level="$(( $nesting_level + 1 ))"
+                    current_argument="$current_argument$char"
+                elif [[ "$char" == ")" ]]; then
+                    nesting_level="$(( $nesting_level - 1 ))"
+                    if [[ "$nesting_level" -gt -1 ]]; then
+                        # This is within the argument
+                        current_argument="$current_argument$char"
+                    else
+                        # This character is the closing
+                        # parentheses for the function call
+                        #argument_list+=("$current_argument")
+                        if [[ "$current_argument" == *"("* ]]; then
+                            current_argument=$(parse_function "$current_argument")
+                        fi
+                        current_line="$current_line $current_argument"
+                        current_argument=""
+                    fi
+                elif [[ "$char" == "," ]]; then
+                    # This is potentially going to the next argument
+                    if [[ "$nesting_level" -eq 0 ]]; then
+                        # This is going to the next argument
+                        #argument_list+=("$current_argument")
+                        if [[ "$current_argument" == *"("* ]]; then
+                            current_argument=$(parse_function "$current_argument")
+                        fi
+                        current_line="$current_line $current_argument"
+                        current_argument=""
+                    fi
+                elif [[ "$char" == " " ]]; then
+                    if [[ "$current_argument" == "" ]]; then
+                        # We will ignore spaces at the start
+                        true
+                    else
+                        current_argument="$current_argument$char"
+                    fi
+                    true
+                else
+                    current_argument="$current_argument$char"
+                fi
+                ;;
+        esac
+        # Increment the counter for the next round
+        index="$(( $index + 1 ))"
+    done
+    # echo "($current_line)"
+    escaped=$(escape "$current_line")
+    echo "($escaped)"
 }
 
 escape() {
