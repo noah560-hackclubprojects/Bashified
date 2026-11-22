@@ -198,7 +198,7 @@ while IFS= read -r line; do
             elif [[ "$first_word" == "include" ]]; then
                 # Include another file
                 included="$second_word"
-                included="${included/.//}"
+                included="${included/.//}.bfy"
                 "$built_path" parser "$included" "$parse_to"
             else
                 echo -e "Invalid syntax in definition:\n    $line"
