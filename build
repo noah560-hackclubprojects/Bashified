@@ -11,8 +11,10 @@ build_path=$(git rev-parse --show-toplevel)/bashified
 source_path=$(git rev-parse --show-toplevel)/src
 
 echo "Building final script from components..."
-# Make sure the script is the actual command
-echo 'if [[ "$0" == "bash" ]]; then echo "You need to run this script directly." ; exit ; fi' > "$build_path"
+# Make sure the script uses the bash interpreter
+echo '#!/bin/bash' > "$build_path"
+# Make sure the script is the actual command being run
+echo 'if [[ "$0" == "bash" ]]; then echo "You need to run this script directly." ; exit ; fi' >> "$build_path"
 # Create a reference to the script within the script
 # so that each component can access the others.
 echo 'built_path=$(realpath $0)' >> "$build_path"
