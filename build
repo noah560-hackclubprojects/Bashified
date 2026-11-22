@@ -21,22 +21,22 @@ echo 'built_path=$(realpath $0)' >> "$build_path"
 
 echo "Adding parser component..."
 # Check for using parser
-echo 'if [[ "$1" == "parser" ]]; then' >> "$build_path"
+echo 'if [[ "$1" == "_parser" ]]; then' >> "$build_path"
 cat "$source_path/parser.bash" >> "$build_path"
 
 echo "Adding compiler component..."
 # Check for using compiler
-echo 'elif [[ "$1" == "compiler" ]]; then' >> "$build_path"
+echo 'elif [[ "$1" == "_compiler" ]]; then' >> "$build_path"
 cat "$source_path/compiler.bash" >> "$build_path"
 
 echo "Adding interpreter component..."
 # Check for using interpreter
-echo 'elif [[ "$1" == "interpreter" ]]; then' >> "$build_path"
+echo 'elif [[ "$1" == "_interpreter" ]]; then' >> "$build_path"
 cat "$source_path/interpreter.bash" >> "$build_path"
 
 echo "Adding packager component..."
 # Check for using packager
-echo 'elif [[ "$1" == "packager" ]]; then' >> "$build_path"
+echo 'elif [[ "$1" == "_packager" ]]; then' >> "$build_path"
 cat "$source_path/packager.bash" >> "$build_path"
 
 echo "Adding cli component..."
