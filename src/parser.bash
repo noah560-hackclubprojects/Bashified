@@ -183,6 +183,7 @@ while IFS= read -r line; do
                 fi
 
                 current_definition="foreign $function_name $argument_count"
+                state="foreign"
             elif [[ "$first_word" == "fn" ]]; then
                 # This is a function definition
                 function_name=$(echo "$second_word" | cut -d "(" -f1)
@@ -194,14 +195,22 @@ while IFS= read -r line; do
                 argument_count=${#arguments[@]}
 
                 IFS=" " argument_string=${arguments[*]}
-                current_definition="fn $function_name $argument_count $argument_string"
+                if [[ argument_string == "" ]]; then
+                    current_definition="fn $function_name $argument_count"
+                else
+                    current_definition="fn $function_name $argument_count $argument_string"
+                fi
+                state="fn"
             elif [[ "$first_word" == "include" ]]; then
                 # Include another file
                 included="$second_word"
                 included="${included/.//}.bfy"
                 "$built_path" _parser "$included" "$parse_to"
+            elif [[ "$first_word" == "" ]]; then
+                true
             else
-                echo -e "Invalid syntax in definition:\n    $line"
+                echo "Invalid syntax in definition:"
+                echo "  $line"
                 exit 1
             fi
             ;;
@@ -235,7 +244,7 @@ while IFS= read -r line; do
                         next_call=$(escape "$next_call")
                     else
                         # This is a normal function call
-                        next_call=$(parse_function "")
+                        next_call=$(parse_function "$line")
                     fi
                     current_definition="$current_definition $next_call"
                 fi
